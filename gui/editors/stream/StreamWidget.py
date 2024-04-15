@@ -23,9 +23,6 @@ class StreamEditor(StreamWidgetUI):
         self.sadl: [SADL] = None
         self.name = None
 
-        self.encoding_combo_box.addItem("Ima Adpcm (Layton 1)", userData=Coding.INT_IMA)
-        self.encoding_combo_box.addItem("Procyon (Layton 2)", userData=Coding.NDS_PROCYON)
-
     def set_sadl(self, sad: SADL, name: str):
         self.sadl = sad
         self.name = name

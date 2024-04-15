@@ -1,9 +1,11 @@
 from PySide6 import QtWidgets, QtCore, QtGui
+from formats.sound.sound_types import LFO
 
 
 class LFOEditWidgetUI(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(LFOEditWidgetUI, self).__init__(*args, **kwargs)
+        self.lfo: [LFO] = None
 
         self.form_layout = QtWidgets.QFormLayout()
         self.setLayout(self.form_layout)
@@ -39,3 +41,12 @@ class LFOEditWidgetUI(QtWidgets.QWidget):
         self.delay.setToolTip("Delay until the LFO starts in milliseconds.")
         self.depth.setRange(0, 16_777_215)
         self.form_layout.addRow("Delay", self.delay)
+
+    def set_lfo(self, lfo: LFO):
+        self.lfo = lfo
+
+        self.destination.setCurrentIndex(self.lfo.destination)
+        self.w_shape.setCurrentIndex(self.lfo.wshape)
+        self.rate.setValue(self.lfo.rate)
+        self.depth.setValue(self.lfo.depth)
+        self.delay.setValue(self.lfo.delay)

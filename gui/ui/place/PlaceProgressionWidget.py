@@ -20,7 +20,7 @@ class PlaceProgressionWidgetUI(QtWidgets.QWidget):
         self.upper_bound_spin = QtWidgets.QSpinBox()
         self.upper_bound_spin.setRange(0, 1000)
         self.range_layout.addWidget(self.upper_bound_spin)
-        self.upper_bound_spin.valueChanged.connect(self.upper_bound_spin)
+        self.upper_bound_spin.valueChanged.connect(self.upper_range_edit)
 
         self.place_flag_checkbox = QtWidgets.QCheckBox("Check place flag")
         self.form_layout.addRow(self.place_flag_checkbox)

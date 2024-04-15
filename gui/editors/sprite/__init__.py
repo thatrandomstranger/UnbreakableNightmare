@@ -1,4 +1,3 @@
-from .SpriteAnimPropertiesWidget import AnimPropertiesWidget
 from .SpriteAnimsModel import AnimsModel
 from .SpriteFramesModel import FramesModel
 from .SpriteImagesModel import ImagesModel

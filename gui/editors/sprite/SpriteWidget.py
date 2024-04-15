@@ -1,4 +1,4 @@
-from gui.ui.sprite.SpriteWidget import SpriteWidgetUI
+from gui.ui.sprite.SpriteWidget import SpriteWidgetUI, FrameOrders
 from formats.graphics.ani import AniSprite, AnimationFrame
 from PySide6 import QtCore, QtGui
 from . import *
@@ -7,18 +7,14 @@ from . import *
 class SpriteEditor(SpriteWidgetUI):
     def __init__(self, *args, **kwargs):
         super(SpriteEditor, self).__init__(*args, **kwargs)
-        self.sprite: AniSprite = None
         self.variables_model = VariablesModel()
         self.images_model = ImagesModel()
         self.anims_model = AnimsModel()
-        self.frames_model = FramesModel(self.anim_properties.frame_order_edit)
+        self.frames_model = FramesModel(self.frame_order_edit)
         self.selected_frame: AnimationFrame = None
 
-    def get_anim_properties_widget(self):
-        return AnimPropertiesWidget([self.frame_next_index_label, self.frame_next_index_input])
-
     def set_sprite(self, sprite: AniSprite):
-        self.sprite = sprite
+        super(SpriteEditor, self).set_sprite(sprite)
         self.variables_model.set_sprite(sprite)
         self.variables_table.setModel(self.variables_model)
         self.images_model.set_sprite(sprite)
@@ -26,19 +22,8 @@ class SpriteEditor(SpriteWidgetUI):
         self.anims_model.set_sprite(sprite)
         self.anim_list.setModel(self.anims_model)
 
-        self.image_list.setCurrentIndex(QtCore.QModelIndex())
-        self.anim_list.setCurrentIndex(QtCore.QModelIndex())
-        self.frame_list.setCurrentIndex(QtCore.QModelIndex())
-
     def save_btn_click(self):
         self.sprite.save()
-
-    def image_list_selection(self, selected: QtCore.QModelIndex):
-        if not selected.isValid():
-            self.image_view.clear()
-            return
-        index = selected.row()
-        self.image_view.setPixmap(self.sprite.extract_image_qt(index))
 
     def image_list_context_menu(self, point: QtCore.QPoint):
         index = self.image_list.indexAt(point)
@@ -77,7 +62,7 @@ class SpriteEditor(SpriteWidgetUI):
         self.frames_model.set_animation(self.sprite, selected.row())
         self.frame_list.setModel(self.frames_model)
         self.frame_list.clearSelection()
-        self.anim_properties.set_animation(self.sprite, selected.row())
+        self.set_animation(selected.row())
 
     def anim_context_menu(self, point: QtCore.QPoint):
         index = self.anim_list.indexAt(point)
@@ -101,15 +86,7 @@ class SpriteEditor(SpriteWidgetUI):
             return
         animation = self.frames_model.animation
         self.selected_frame = animation.frames[selected.row()]
-        self.frame_edit_data.show()
-        if self.selected_frame.image_index < len(self.sprite.images):
-            self.frame_preview.setPixmap(self.sprite.extract_image_qt(self.selected_frame.image_index))
-        self.frame_image_index_input.setRange(0, len(self.sprite.images) - 1)
-        self.frame_next_index_input.setRange(0, len(animation.frames) - 1)
-        self.frame_duration_input.setRange(0, 360)
-        self.frame_image_index_input.setValue(self.selected_frame.image_index)
-        self.frame_next_index_input.setValue(self.selected_frame.next_frame_index)
-        self.frame_duration_input.setValue(self.selected_frame.duration)
+        self.frame_update_view(animation, self.selected_frame)
 
     def frame_context_menu(self, point: QtCore.QPoint):
         index = self.frame_list.indexAt(point)
@@ -136,3 +113,24 @@ class SpriteEditor(SpriteWidgetUI):
 
     def frame_duration_changed(self, value: int):
         self.selected_frame.duration = value
+
+    def frame_order_edit(self, _index: int = 0):
+        if self.frame_order_input.currentData() == FrameOrders.CUSTOM:
+            self.show_next_frame_widgets()
+            return
+        self.hide_next_frame_widgets()
+        frame_count = len(self.animation.frames)
+        for i, frame in enumerate(self.animation.frames):
+            if self.frame_order_input.currentData() == FrameOrders.LOOPING:
+                frame.next_frame_index = (i + 1) % frame_count
+            elif self.frame_order_input.currentData() == FrameOrders.NO_LOOPING:
+                frame.next_frame_index = min(i + 1, frame_count - 1)
+
+    def child_x_edit(self, value: int):
+        self.animation.child_image_x = value
+
+    def child_y_edit(self, value: int):
+        self.animation.child_image_y = value
+
+    def child_anim_edit(self, value: int):
+        self.animation.child_image_animation_index = value

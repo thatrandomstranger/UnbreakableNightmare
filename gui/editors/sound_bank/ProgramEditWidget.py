@@ -63,19 +63,13 @@ class ProgramEditor(ProgramEditWidgetUI):
         self.split_model = SplitModel()
 
     def set_program(self, program: Program):
-        self.program = program
-
-        self.volume.setValue(self.program.volume)
-        self.pan.setValue(self.program.pan)
+        super().set_program(program)
 
         self.lfo_model.set_program(program)
         self.split_model.set_program(program)
 
         self.lfo_list.setModel(self.lfo_model)
         self.split_list.setModel(self.split_model)
-
-        self.lfo_list.setCurrentIndex(QtCore.QModelIndex())
-        self.split_list.setCurrentIndex(QtCore.QModelIndex())
 
     def get_lfo_edit_widget(self):
         return LFOEditor()

@@ -1,11 +1,21 @@
 from typing import List
-from .AnimPropertiesWidget import AnimPropertiesWidgetUI
 from PySide6 import QtCore, QtWidgets, QtGui
+import enum
+
+from formats.graphics.ani import AniSprite, AnimationFrame, Animation
+
+
+class FrameOrders(enum.IntEnum):
+    LOOPING = 0
+    NO_LOOPING = 1
+    CUSTOM = 2
 
 
 class SpriteWidgetUI(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(SpriteWidgetUI, self).__init__(*args, **kwargs)
+        self.sprite: AniSprite = None
+        self.animation: Animation = None
 
         self.context_menu = QtWidgets.QMenu()
 
@@ -115,7 +125,34 @@ class SpriteWidgetUI(QtWidgets.QWidget):
         self.frame_edit_widget.setLayout(self.frame_edit_layout)
         self.anim_data_tab.addTab(self.frame_edit_widget, "Frames")
 
-        self.anim_properties = self.get_anim_properties_widget()
+        self.anim_properties = QtWidgets.QWidget()
+
+        self.anim_form_layout = QtWidgets.QFormLayout()
+
+        self.child_x_input = QtWidgets.QSpinBox(self)
+        self.child_x_input.setMaximum(65535)
+        self.child_x_input.valueChanged.connect(self.child_x_edit)
+        self.anim_form_layout.addRow("Child X Offset", self.child_x_input)
+
+        self.child_y_input = QtWidgets.QSpinBox(self)
+        self.child_y_input.setMaximum(65535)
+        self.child_y_input.valueChanged.connect(self.child_y_edit)
+        self.anim_form_layout.addRow("Child Y Offset", self.child_y_input)
+
+        self.child_anim_index = QtWidgets.QSpinBox(self)
+        self.child_anim_index.setMaximum(255)
+        self.child_anim_index.valueChanged.connect(self.child_anim_edit)
+        self.anim_form_layout.addRow("Child Animation Index", self.child_anim_index)
+
+        self.frame_order_input = QtWidgets.QComboBox(self)
+        self.frame_order_input.addItem("Looping", FrameOrders.LOOPING)
+        self.frame_order_input.addItem("No Looping", FrameOrders.NO_LOOPING)
+        self.frame_order_input.addItem("Custom", FrameOrders.CUSTOM)
+        self.frame_order_input.currentIndexChanged.connect(self.frame_order_edit)
+        self.anim_form_layout.addRow("Frame Order", self.frame_order_input)
+
+        self.anim_properties.setLayout(self.anim_form_layout)
+
         self.anim_data_tab.addTab(self.anim_properties, "Properties")
 
         self.anim_layout.addWidget(self.anim_data_tab, 2)
@@ -133,8 +170,11 @@ class SpriteWidgetUI(QtWidgets.QWidget):
 
         self.setLayout(self.v_layout)
 
-    def get_anim_properties_widget(self):
-        return AnimPropertiesWidgetUI(self)
+    def set_sprite(self, sprite: AniSprite):
+        self.sprite = sprite
+        self.image_list.setCurrentIndex(QtCore.QModelIndex())
+        self.anim_list.setCurrentIndex(QtCore.QModelIndex())
+        self.frame_list.setCurrentIndex(QtCore.QModelIndex())
 
     def image_list_selection_ui(self, selected: QtCore.QItemSelection, deselected: QtCore.QItemSelection):
         QtWidgets.QListView.selectionChanged(self.image_list, selected, deselected)
@@ -144,7 +184,11 @@ class SpriteWidgetUI(QtWidgets.QWidget):
             self.image_list_selection(QtCore.QModelIndex())
 
     def image_list_selection(self, selected: QtCore.QModelIndex):
-        pass
+        if not selected.isValid():
+            self.image_view.clear()
+            return
+        index = selected.row()
+        self.image_view.setPixmap(self.sprite.extract_image_qt(index))
 
     def image_list_context_menu(self, point: QtCore.QPoint):
         pass
@@ -175,6 +219,17 @@ class SpriteWidgetUI(QtWidgets.QWidget):
     def frame_change_selection(self, selected: QtCore.QModelIndex):
         pass
 
+    def frame_update_view(self, animation: Animation, frame: AnimationFrame):
+        self.frame_edit_data.show()
+        if frame.image_index < len(self.sprite.images):
+            self.frame_preview.setPixmap(self.sprite.extract_image_qt(frame.image_index))
+        self.frame_image_index_input.setRange(0, len(self.sprite.images) - 1)
+        self.frame_next_index_input.setRange(0, len(animation.frames) - 1)
+        self.frame_duration_input.setRange(0, 360)
+        self.frame_image_index_input.setValue(frame.image_index)
+        self.frame_next_index_input.setValue(frame.next_frame_index)
+        self.frame_duration_input.setValue(frame.duration)
+
     def frame_context_menu(self, point: QtCore.QPoint):
         pass
 
@@ -185,4 +240,40 @@ class SpriteWidgetUI(QtWidgets.QWidget):
         pass
 
     def frame_duration_changed(self, value: int):
+        pass
+
+    def show_next_frame_widgets(self):
+        self.frame_next_index_label.show()
+        self.frame_next_index_input.show()
+
+    def hide_next_frame_widgets(self):
+        self.frame_next_index_label.hide()
+        self.frame_next_index_input.hide()
+
+    def set_animation(self, anim_idx: int):
+        self.animation = self.sprite.animations[anim_idx]
+        self.child_x_input.setValue(self.animation.child_image_x)
+        self.child_y_input.setValue(self.animation.child_image_y)
+        self.child_anim_index.setValue(self.animation.child_image_animation_index)
+
+        next_frame_indexes = [frame.next_frame_index for frame in self.animation.frames]
+        frame_count = len(self.animation.frames)
+        if next_frame_indexes == [(i + 1) % frame_count for i in range(frame_count)]:
+            self.frame_order_input.setCurrentIndex(0)
+        elif next_frame_indexes == [min(i + 1, frame_count - 1) for i in range(frame_count)]:
+            self.frame_order_input.setCurrentIndex(1)
+        else:
+            self.frame_order_input.setCurrentIndex(2)
+        self.frame_order_edit()
+
+    def child_x_edit(self, value: int):
+        pass
+
+    def child_y_edit(self, value: int):
+        pass
+
+    def child_anim_edit(self, value: int):
+        pass
+
+    def frame_order_edit(self, index: int):
         pass

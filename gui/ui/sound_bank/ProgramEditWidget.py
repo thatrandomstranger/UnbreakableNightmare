@@ -1,4 +1,6 @@
 from PySide6 import QtCore, QtWidgets, QtGui
+
+from formats.sound.sound_types import Program
 from .LFOEditWidget import LFOEditWidgetUI
 from .SplitEditWidget import SplitEditWidgetUI
 
@@ -6,6 +8,7 @@ from .SplitEditWidget import SplitEditWidgetUI
 class ProgramEditWidgetUI(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(ProgramEditWidgetUI, self).__init__(*args, **kwargs)
+        self.program: [Program] = None
 
         self.form_layout = QtWidgets.QFormLayout()
         self.setLayout(self.form_layout)
@@ -55,6 +58,15 @@ class ProgramEditWidgetUI(QtWidgets.QWidget):
         self.split_edit_scroll.setWidgetResizable(True)
         self.split_edit.hide()
         self.split_h_layout.addWidget(self.split_edit_scroll, 2)
+
+    def set_program(self, program: Program):
+        self.program = program
+
+        self.volume.setValue(self.program.volume)
+        self.pan.setValue(self.program.pan)
+
+        self.lfo_list.setCurrentIndex(QtCore.QModelIndex())
+        self.split_list.setCurrentIndex(QtCore.QModelIndex())
 
     def get_lfo_edit_widget(self):
         return LFOEditWidgetUI()

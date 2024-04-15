@@ -1,4 +1,5 @@
-from PySide6 import QtCore, QtWidgets, QtGui
+from PySide6 import QtCore, QtWidgets
+from formats.sound.sadl import Coding
 
 
 class StreamWidgetUI(QtWidgets.QWidget):
@@ -28,6 +29,8 @@ class StreamWidgetUI(QtWidgets.QWidget):
         self.file_layout.addWidget(self.file_select_btn, 1)
 
         self.encoding_combo_box = QtWidgets.QComboBox()
+        self.encoding_combo_box.addItem("Ima Adpcm (Layton 1)", userData=Coding.INT_IMA)
+        self.encoding_combo_box.addItem("Procyon (Layton 2)", userData=Coding.NDS_PROCYON)
         self.form_layout.addRow("Encoding", self.encoding_combo_box)
 
         self.import_btn = QtWidgets.QPushButton("Import")
