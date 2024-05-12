@@ -41,7 +41,7 @@ class SoundPreview(TwoScreenRenderer):
 
         self.player: StreamPlayerAbstract = player
         self.player.load_sound(snd_obj)
-        self.player.set_volume(0.5)
+        self.player.set_volume(0.5**2)
         self.playing = False
         if self.check_playable():
             self.explanation_text.text = "Touch the headphones to play"
@@ -92,6 +92,6 @@ class SoundPreview(TwoScreenRenderer):
         self.explanation_text.draw(self.btm_camera)
         slider_value, changed = self.volume_slider.get_value(self.btm_camera)
         if changed:
-            self.player.set_volume(slider_value)
+            self.player.set_volume(slider_value**2)  # ^2 to smooth volume slider (0-1)
         self.volume_slider.draw(self.btm_camera)
         super(SoundPreview, self).draw()

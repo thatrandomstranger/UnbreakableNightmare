@@ -75,7 +75,7 @@ class SpriteLoaderROM(k4pg.SpriteLoaderOS):
             color_key = pg.Color(0, 255, 0)
         else:
             bg_sprite = BGImage(path, rom=self.rom)
-            img_array = bg_sprite.palette[bg_sprite.image][:, :, :-1]
+            img_array = bg_sprite.palette_rgb[bg_sprite.image][:, :, :-1]
             img_array = np.swapaxes(img_array, 0, 1)
             surf = pg.surfarray.make_surface(img_array)
             color_key = None

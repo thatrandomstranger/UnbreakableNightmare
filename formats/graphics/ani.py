@@ -167,6 +167,8 @@ class AniSprite(FileFormat):
     
     Each color is RGBA, all colors having alpha 255 except color 0, which is
     transparent.
+    
+    TODO: Make it consistent with backgrounds (aka save palette as 5 bits).
     """
     child_image: str = ""
     """Path of the child image, with the ".ani" extension (TODO: check for AniSubSprite)."""

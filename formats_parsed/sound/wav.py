@@ -62,7 +62,7 @@ class DataChunk:
             data = np.frombuffer(rdr.read(self.chunk_size), dtype="<b")
         else:
             raise NotImplementedError()
-        data = data.reshape((data.shape[0] // fmt_chunk.num_channels, fmt_chunk.num_channels))
+        data = data.reshape((-1, fmt_chunk.num_channels))
         self.data = data.swapaxes(0, 1)
 
     def change_sample_rate(self, target_rate, fmt_chunk: FmtChunk):
